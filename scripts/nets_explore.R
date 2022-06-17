@@ -51,17 +51,37 @@ View(NE_data)
 # Try modelling population change 
 NE_salmon.mdl <- lm(Wild.MSW.Number ~ Year, data = NE_data)
 NE_salmon.mdl #call model into console 
-rsq(NE_salmon.mdl) # the rsq vale for this is 0.09011 which is pretty high
+rsq(NE_salmon.mdl) # the rsq vale for this is 0.9011 which is pretty high
 plot(NE_salmon.mdl) #analyse the model
-# I think we need to correct for the sampling effort
-
 
 # We can graph this:
-(scat3 <- ggplot(NE_data, aes(x = Year, y = Wild.MSW.Number, colour = Region)) +
+(scat3 <- ggplot(NE_data, aes(x = Year, y = log(Wild.MSW.Number), colour = District)) +
     theme_bw() +
     geom_point(size = 1) +
-    labs(y = " Estimated Salmon Number",
+    labs(y = " Log Estimated Salmon Number",
          x = "Year") +
     stat_smooth(method = "lm", formula = y ~ x, colour = c("#1C86EE"),
                 fill = c("#1C86EE")))
 #ggsave(scat3, file = "outputs/salmonpopchangemdl.png", width = 5, height = 5) 
+
+# I think we need to average per year
+
+NE_yearly.mean <- aggregate(NE_data[, 7:21], list(NE_data$Year), mean)
+NE_yearly.mean <- select(NE_yearly.mean, 1:7) %>% 
+  rename(., Year = Group.1)
+# try plotting again
+(scat4 <- ggplot(NE_yearly.mean, aes(x = Year, y = Wild.MSW.Number)) +
+    theme_bw() +
+    geom_point(size = 1) +
+    labs(y = " Mean Estimated Salmon Number",
+         x = "Year") +
+    stat_smooth(method = "lm", formula = y ~ x, colour = c("#1C86EE"),
+                fill = c("#1C86EE")))
+#ggsave(scat4, file = "outputs/meansalmonpopchange.png", width = 5, height = 5)
+
+# Try modelling mean population change 
+NE_salmon.mdl2 <- lm(Wild.MSW.Number ~ Year, data = NE_yearly.mean)
+NE_salmon.mdl2 #call model into console 
+rsq(NE_salmon.mdl2) # the rsq vale for this is 0.7 
+plot(NE_salmon.mdl2) #analyse the model
+
